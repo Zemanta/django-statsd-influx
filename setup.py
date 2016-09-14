@@ -38,7 +38,6 @@ setup(
     keywords=['statsd', 'influx', 'influxdb', 'django'],
     install_requires=[
         'statsd==3.2.1',
-        'Django>=1.8.4'
     ],
     tests_require=['tox', 'virtualenv', 'statsd==3.2.1', 'Django>=1.8.4'],
     cmdclass={'test': Tox},
