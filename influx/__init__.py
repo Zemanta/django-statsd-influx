@@ -5,7 +5,6 @@ import socket
 from contextlib import contextmanager
 
 import statsd
-from django.conf import settings
 
 _hostname = 'unknown'
 try:
@@ -15,12 +14,26 @@ except Exception:
 
 _telegraf_client = None
 
+_statsd_influx_host = None
+_statsd_influx_port = None
+_project_name = ''
+
+
+class MissingConfiguration(Exception):
+    pass
+
 
 def _get_client():
     global _telegraf_client
 
+    if not _statsd_influx_host:
+        raise MissingConfiguration('Missing STATSD_INFLUX_HOST setting')
+
+    if not _statsd_influx_port:
+        raise MissingConfiguration('Missing STATSD_INFLUX_PORT setting')
+
     if _telegraf_client is None:
-        _telegraf_client = statsd.StatsClient(settings.STATSD_INFLUX_HOST, settings.STATSD_INFLUX_PORT)
+        _telegraf_client = statsd.StatsClient(_statsd_influx_host, _statsd_influx_port)
 
     return _telegraf_client
 
@@ -39,12 +52,22 @@ def _get_tags(custom_tags):
     return ','.join('{0}={1}'.format(_escape_tags(k), _escape_tags(v)) for k, v in tags)
 
 
+def configure(statsd_host, statsd_port, project_name):
+    global _statsd_influx_host
+    global _statsd_influx_port
+    global _project_name
+
+    _statsd_influx_host = statsd_host
+    _statsd_influx_port = statsd_port
+    _project_name = project_name
+
+
 @contextmanager
 def block_timer(name, **tags):
     start = time.time()
     yield
     new_name = '{prefix}.{name},{tags}'.format(
-        prefix=settings.PROJECT_NAME,
+        prefix=_project_name,
         source=_hostname,
         name=name,
         tags=_get_tags(tags),
@@ -65,7 +88,7 @@ def timer(name, **tags):
 
 def incr(name, count, **tags):
     _get_client().incr('{prefix}.{name},{tags}'.format(
-        prefix=settings.PROJECT_NAME,
+        prefix=_project_name,
         name=name,
         tags=_get_tags(tags),
     ), count)
@@ -73,7 +96,13 @@ def incr(name, count, **tags):
 
 def gauge(name, value, **tags):
     _get_client().gauge('{prefix}.{name},{tags}'.format(
-        prefix=settings.PROJECT_NAME,
+        prefix=_project_name,
         name=name,
         tags=_get_tags(tags),
     ), value)
+
+try:
+    from django.conf import settings
+    configure(settings.STATSD_HOST, settings.STATSD_PORT, settings.PROJECT_NAME)
+except:
+    pass
