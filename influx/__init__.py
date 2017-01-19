@@ -1,6 +1,9 @@
 import functools
 import time
 import socket
+import logging
+
+logger = logging.getLogger(__name__)
 
 from contextlib import contextmanager
 
@@ -27,10 +30,10 @@ def _get_client():
     global _telegraf_client
 
     if not _statsd_influx_host:
-        raise MissingConfiguration('Missing STATSD_INFLUX_HOST setting')
+        logger.warning('Missing STATSD_INFLUX_HOST setting')
 
     if not _statsd_influx_port:
-        raise MissingConfiguration('Missing STATSD_INFLUX_PORT setting')
+        logger.warning('Missing STATSD_INFLUX_PORT setting')
 
     if _telegraf_client is None:
         _telegraf_client = statsd.StatsClient(_statsd_influx_host, _statsd_influx_port)
@@ -62,17 +65,21 @@ def configure(statsd_host, statsd_port, project_name):
     _project_name = project_name
 
 
-@contextmanager
-def block_timer(name, **tags):
-    start = time.time()
-    yield
+def timing(name, seconds, **tags):
     new_name = '{prefix}.{name},{tags}'.format(
         prefix=_project_name,
         source=_hostname,
         name=name,
         tags=_get_tags(tags),
     )
-    _get_client().timing(new_name, int((time.time() - start) * 1000))
+    _get_client().timing(new_name, int(seconds * 1000))
+
+
+@contextmanager
+def block_timer(name, **tags):
+    start = time.time()
+    yield
+    timing(name, (time.time() - start), **tags)
 
 
 def timer(name, **tags):
