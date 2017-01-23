@@ -110,6 +110,8 @@ def gauge(name, value, **tags):
 
 try:
     from django.conf import settings
-    configure(settings.STATSD_HOST, settings.STATSD_PORT, settings.PROJECT_NAME)
+    configure(settings.STATSD_HOST or settings.STATSD_INFLUX_HOST,
+              settings.STATSD_PORT or settings.STATSD_INFLUX_PORT,
+              settings.PROJECT_NAME)
 except:
     pass
