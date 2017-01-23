@@ -30,10 +30,10 @@ def _get_client():
     global _telegraf_client
 
     if not _statsd_influx_host:
-        logger.warning('Missing STATSD_INFLUX_HOST setting')
+        raise MissingConfiguration('Missing STATSD_INFLUX_HOST setting')
 
     if not _statsd_influx_port:
-        logger.warning('Missing STATSD_INFLUX_PORT setting')
+        raise MissingConfiguration('Missing STATSD_INFLUX_PORT setting')
 
     if _telegraf_client is None:
         _telegraf_client = statsd.StatsClient(_statsd_influx_host, _statsd_influx_port)
@@ -110,8 +110,6 @@ def gauge(name, value, **tags):
 
 try:
     from django.conf import settings
-    configure(settings.STATSD_HOST or settings.STATSD_INFLUX_HOST,
-              settings.STATSD_PORT or settings.STATSD_INFLUX_PORT,
-              settings.PROJECT_NAME)
+    configure(settings.STATSD_INFLUX_HOST, settings.STATSD_INFLUX_PORT, settings.PROJECT_NAME)
 except:
     pass
