@@ -1,16 +1,13 @@
 from unittest import TestCase
 
-from django.conf import settings
-
 import influx
 
-
-settings.configure(
-    PROJECT_NAME='my_project',
-    HOSTNAME='localhost',
-    STATSD_INFLUX_HOST='localhost',
-    STATSD_INFLUX_PORT='8125',
+influx.configure(
+    project_name='my_project',
+    statsd_host='localhost',
+    statsd_port='8125',
 )
+
 
 
 class MockStatsd:
@@ -63,6 +60,21 @@ class InfluxHelperTestCase(TestCase):
             'metric_name': 'my_project.test.metric,source=my_source,tag=tag1,host=h',
             'metric_value': 'v',
         })
+
+    def test_influx_timing(self):
+        res = {}
+
+        def timing(n, v):
+            res['metric_name'] = n
+            res['metric_value'] = v
+
+        influx._telegraf_client.timing = timing
+        influx._hostname = "h"
+
+        influx.timing("test.metric", 1.3, source='my_source', tag='tag1')
+
+        self.assertEqual(res['metric_name'], 'my_project.test.metric,source=my_source,tag=tag1,host=h')
+        self.assertEqual(res['metric_value'], 1300)
 
     def test_influx_block_timer(self):
         res = {}

@@ -39,7 +39,7 @@ setup(
     install_requires=[
         'statsd==3.2.1',
     ],
-    tests_require=['tox', 'virtualenv', 'statsd==3.2.1', 'Django>=1.8.4'],
+    tests_require=['tox', 'virtualenv', 'statsd==3.2.1'],
     cmdclass={'test': Tox},
     classifiers=[
         'Development Status :: 3 - Alpha',
