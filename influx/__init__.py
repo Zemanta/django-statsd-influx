@@ -84,7 +84,7 @@ def block_timer(name, **tags):
 
 def timer(name, **tags):
     def decorate(func):
-        def wrapper(*args, **kwargs):
+        def wrapper(func, *args, **kwargs):
             with block_timer(name, **tags):
                 result = func(*args, **kwargs)
             return result
