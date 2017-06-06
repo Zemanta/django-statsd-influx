@@ -1,13 +1,13 @@
-import functools
 import time
 import socket
 import logging
 
-logger = logging.getLogger(__name__)
-
 from contextlib import contextmanager
 
+import decorator
 import statsd
+
+logger = logging.getLogger(__name__)
 
 _hostname = 'unknown'
 try:
@@ -83,14 +83,13 @@ def block_timer(name, **tags):
 
 
 def timer(name, **tags):
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+    def decorate(func):
+        def wrapper(func, *args, **kwargs):
             with block_timer(name, **tags):
                 result = func(*args, **kwargs)
             return result
-        return wrapper
-    return decorator
+        return decorator.decorate(func, wrapper)
+    return decorate
 
 
 def incr(name, count, **tags):
