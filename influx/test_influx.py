@@ -27,6 +27,16 @@ class InfluxHelperTestCase(TestCase):
     def setUp(self):
         influx._telegraf_client = MockStatsd()
 
+    def test_tag_none(self):
+        influx._hostname = 'test_host'
+        tags = {
+            'tag1': 'v1',
+            'tag2': '',
+            'tag3': None,
+        }
+        result = influx._get_tags(tags)
+        self.assertEqual(result, 'tag1=v1,host=test_host')
+
     def test_influx_incr(self):
         res = {}
 

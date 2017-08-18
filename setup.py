@@ -29,7 +29,7 @@ class Tox(TestCommand):
 setup(
     name='django-statsd-influx',
     packages=['influx'],
-    version='0.1.6',
+    version='0.1.7',
     description='Django Statsd Influx Client ',
     author='Jure Ham, Zemanta',
     author_email='jure.ham@zemanta.com',

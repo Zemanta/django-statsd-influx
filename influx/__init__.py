@@ -52,7 +52,7 @@ def _escape_tags(tag):
 def _get_tags(custom_tags):
     tags = sorted(custom_tags.items(), key=lambda x: x[0]) + _get_default_tags()
 
-    return ','.join('{0}={1}'.format(_escape_tags(k), _escape_tags(v)) for k, v in tags)
+    return ','.join('{0}={1}'.format(_escape_tags(k), _escape_tags(v)) for k, v in tags if v)
 
 
 def configure(statsd_host, statsd_port, project_name):
